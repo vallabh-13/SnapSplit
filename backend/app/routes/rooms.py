@@ -63,6 +63,18 @@ async def claim_item(code: str, payload: ClaimRequest):
 
 @router.put("/{code}/items/{item_id}/claimers")
 async def set_item_claimers(code: str, item_id: str, shares: dict[str, float]):
+    # Validate total claimed units don't exceed item quantity
+    room_check = room_service.get_room(code)
+    if room_check and room_check.receipt:
+        item = next((i for i in room_check.receipt.items if i.id == item_id), None)
+        if item:
+            total = sum(v for v in shares.values() if v > 0)
+            if total > item.quantity + 0.001:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Cannot claim {total:.2f} units — only {item.quantity} available on the receipt"
+                )
+
     room = room_service.set_item_claimers(code, item_id, shares)
     if room is None:
         raise HTTPException(status_code=404, detail="Room or item not found")

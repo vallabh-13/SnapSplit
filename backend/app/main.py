@@ -50,7 +50,7 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, participant_n
     if room:
         await websocket.send_text(json.dumps({
             "type": "room_state",
-            "room": room.model_dump(),
+            "room": room.model_dump(mode="json"),
         }))
 
     # Notify others

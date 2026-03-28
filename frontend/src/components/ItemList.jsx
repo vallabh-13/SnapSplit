@@ -23,15 +23,10 @@ export default function ItemList() {
   const { items, tax, tip, subtotal, total } = room.receipt
   const participants = room.participants
 
-  // My running subtotal from claimed items (weighted by shares)
+  // My running subtotal: my claimed units × unit price
   const mySubtotal = items.reduce((sum, item) => {
-    if (!item.claimed_by.includes(myName)) return sum
-    const total = item.price * item.quantity
-    if (item.shares && item.shares[myName]) {
-      const totalWeight = Object.values(item.shares).reduce((s, w) => s + w, 0)
-      return sum + (item.shares[myName] / totalWeight) * total
-    }
-    return sum + total / item.claimed_by.length
+    const myUnits = item.shares?.[myName] ?? 0
+    return sum + myUnits * item.price
   }, 0)
 
   const handleConfirm = (claimers) => {
@@ -55,16 +50,13 @@ export default function ItemList() {
         </div>
 
         {items.map((item) => {
-          const myClaim = item.claimed_by.includes(myName)
+          const myUnits = item.shares?.[myName] ?? 0
+          const myClaim = myUnits > 0
           const splitCount = item.claimed_by.length
           const totalPrice = item.price * item.quantity
-          const displayPrice = (() => {
-            if (myClaim && item.shares && item.shares[myName]) {
-              const totalWeight = Object.values(item.shares).reduce((s, w) => s + w, 0)
-              return (item.shares[myName] / totalWeight) * totalPrice
-            }
-            return splitCount > 0 ? totalPrice / splitCount : totalPrice
-          })()
+          const displayPrice = myUnits * item.price  // units × unit price
+          const claimedUnits = item.shares ? Object.values(item.shares).reduce((s, u) => s + u, 0) : 0
+          const remainingUnits = item.quantity - claimedUnits
 
           return (
             <button
@@ -101,12 +93,20 @@ export default function ItemList() {
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
                   {item.quantity > 1 && (
-                    <span className="text-white/30 text-xs">{item.quantity}×</span>
+                    <span className="text-white/30 text-xs">{item.quantity}× ${item.price.toFixed(2)}</span>
                   )}
-                  {splitCount > 1 && (
+                  {myClaim && (
                     <span className="text-xs text-violet-400/80 font-medium bg-violet-500/10 px-1.5 py-0.5 rounded-full">
-                      ÷{splitCount} split
+                      {myUnits} unit{myUnits !== 1 ? 's' : ''}
                     </span>
+                  )}
+                  {remainingUnits > 0.001 && splitCount > 0 && (
+                    <span className="text-xs text-amber-400/70 font-medium">
+                      {remainingUnits.toFixed(remainingUnits % 1 ? 1 : 0)} left
+                    </span>
+                  )}
+                  {remainingUnits > 0.001 && splitCount === 0 && (
+                    <span className="text-xs text-white/30">unclaimed</span>
                   )}
                 </div>
               </div>
@@ -114,15 +114,15 @@ export default function ItemList() {
               {/* Price + avatars */}
               <div className="flex flex-col items-end gap-2 flex-shrink-0">
                 <div className="text-right">
-                  {splitCount > 1 && myClaim ? (
+                  {myClaim ? (
                     <>
                       <p className="font-bold text-gradient-amber">${displayPrice.toFixed(2)}</p>
-                      <p className="text-white/25 text-xs line-through">${(item.price * item.quantity).toFixed(2)}</p>
+                      {item.quantity > 1 && (
+                        <p className="text-white/25 text-xs">${totalPrice.toFixed(2)} total</p>
+                      )}
                     </>
                   ) : (
-                    <p className={`font-bold ${myClaim ? 'text-gradient-amber' : 'text-white/70'}`}>
-                      ${(item.price * item.quantity).toFixed(2)}
-                    </p>
+                    <p className="font-bold text-white/70">${totalPrice.toFixed(2)}</p>
                   )}
                 </div>
 

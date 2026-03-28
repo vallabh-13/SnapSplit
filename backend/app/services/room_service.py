@@ -85,53 +85,45 @@ def compute_summary(code: str) -> Optional[dict]:
 
     unclaimed_items = []
     for item in items:
-        total_item_price = item.price * item.quantity
-        if not item.claimed_by:
-            unclaimed_items.append({"name": item.name, "total": round(total_item_price, 2)})
+        claimed_units = sum(item.shares.values()) if item.shares else 0
+        unclaimed_units = round(item.quantity - claimed_units, 6)
+
+        if unclaimed_units > 0.001:
+            unclaimed_items.append({
+                "name": item.name,
+                "total": round(unclaimed_units * item.price, 2),
+                "unclaimed_units": round(unclaimed_units, 4),
+                "total_units": item.quantity,
+            })
+
+        if not item.shares:
             continue
 
-        if item.shares:
-            total_weight = sum(item.shares.values())
-            for person, weight in item.shares.items():
-                fraction = weight / total_weight if total_weight > 0 else 0
-                person_price = round(total_item_price * fraction, 4)
-                if person not in person_items:
-                    person_items[person] = []
-                    person_subtotals[person] = 0.0
-                person_items[person].append({
-                    "name": item.name,
-                    "price": person_price,
-                    "original_price": item.price,
-                    "quantity": item.quantity,
-                    "split_with": len(item.claimed_by),
-                    "share_weight": weight,
-                    "total_weight": total_weight,
-                })
-                person_subtotals[person] += person_price
-        else:
-            # fallback: equal split
-            split_price = round(total_item_price / len(item.claimed_by), 4)
-            for person in item.claimed_by:
-                if person not in person_items:
-                    person_items[person] = []
-                    person_subtotals[person] = 0.0
-                person_items[person].append({
-                    "name": item.name,
-                    "price": split_price,
-                    "original_price": item.price,
-                    "quantity": item.quantity,
-                    "split_with": len(item.claimed_by),
-                })
-                person_subtotals[person] += split_price
+        for person, units in item.shares.items():
+            if units <= 0:
+                continue
+            person_price = round(units * item.price, 4)
+            if person not in person_items:
+                person_items[person] = []
+                person_subtotals[person] = 0.0
+            person_items[person].append({
+                "name": item.name,
+                "price": person_price,
+                "units": units,
+                "unit_price": item.price,
+                "total_units": item.quantity,
+            })
+            person_subtotals[person] += person_price
 
-    total_subtotal = sum(person_subtotals.values()) or receipt.subtotal or 1
+    # Use rate-based tax/tip: each person pays the same % on their own food amount
+    tax_rate = receipt.tax / receipt.subtotal if receipt.subtotal > 0 else 0
+    tip_rate = receipt.tip / receipt.subtotal if receipt.subtotal > 0 else 0
 
     summaries = []
     for person in room.participants:
         subtotal = round(person_subtotals.get(person, 0.0), 2)
-        proportion = subtotal / total_subtotal if total_subtotal > 0 else 0
-        tax_share = round(receipt.tax * proportion, 2)
-        tip_share = round(receipt.tip * proportion, 2)
+        tax_share = round(subtotal * tax_rate, 2)
+        tip_share = round(subtotal * tip_rate, 2)
         total = round(subtotal + tax_share + tip_share, 2)
         summaries.append({
             "name": person,
@@ -150,4 +142,6 @@ def compute_summary(code: str) -> Optional[dict]:
         "receipt_total": receipt.total,
         "allocated_total": allocated_total,
         "unclaimed_items": unclaimed_items,
+        "tax_rate": round(tax_rate * 100, 4),
+        "tip_rate": round(tip_rate * 100, 4),
     }

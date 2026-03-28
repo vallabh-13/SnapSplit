@@ -138,6 +138,8 @@ export default function Summary() {
               person={person}
               isMe={person.name === myName}
               avatarBg={AVATAR_BG[allParticipants.indexOf(person.name) % AVATAR_BG.length]}
+              taxRate={summary.tax_rate ?? 0}
+              tipRate={summary.tip_rate ?? 0}
             />
           ))}
         </div>
@@ -146,7 +148,7 @@ export default function Summary() {
   )
 }
 
-function PersonCard({ person, isMe, avatarBg }) {
+function PersonCard({ person, isMe, avatarBg, taxRate, tipRate }) {
   const [open, setOpen] = useState(isMe)
 
   return (
@@ -191,9 +193,9 @@ function PersonCard({ person, isMe, avatarBg }) {
                 <div key={i} className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-white/70 text-sm truncate">{item.name}</p>
-                    {item.split_with > 1 && (
+                    {item.units != null && (
                       <p className="text-violet-400/60 text-xs mt-0.5">
-                        shared ÷{item.split_with}
+                        {item.units} unit{item.units !== 1 ? 's' : ''} × ${item.unit_price?.toFixed(2)}
                       </p>
                     )}
                   </div>
@@ -210,12 +212,18 @@ function PersonCard({ person, isMe, avatarBg }) {
             <div className="flex justify-between text-white/40 text-sm">
               <span>Items subtotal</span><span>${person.subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-white/40 text-sm">
-              <span>Tax (proportional)</span><span>+${person.tax_share.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-white/40 text-sm">
-              <span>Tip (proportional)</span><span>+${person.tip_share.toFixed(2)}</span>
-            </div>
+            {person.tax_share > 0 && (
+              <div className="flex justify-between text-white/40 text-sm">
+                <span>Tax {taxRate > 0 ? `(${taxRate.toFixed(1)}%)` : ''}</span>
+                <span>+${person.tax_share.toFixed(2)}</span>
+              </div>
+            )}
+            {person.tip_share > 0 && (
+              <div className="flex justify-between text-white/40 text-sm">
+                <span>Tip {tipRate > 0 ? `(${tipRate.toFixed(1)}%)` : ''}</span>
+                <span>+${person.tip_share.toFixed(2)}</span>
+              </div>
+            )}
             <div className="flex justify-between font-bold text-white border-t border-white/10 pt-2 mt-1">
               <span>Total owed</span>
               <span className="text-gradient-amber text-lg">${person.total.toFixed(2)}</span>
