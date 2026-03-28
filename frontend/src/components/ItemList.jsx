@@ -23,10 +23,15 @@ export default function ItemList() {
   const { items, tax, tip, subtotal, total } = room.receipt
   const participants = room.participants
 
-  // My running subtotal from claimed items
+  // My running subtotal from claimed items (weighted by shares)
   const mySubtotal = items.reduce((sum, item) => {
     if (!item.claimed_by.includes(myName)) return sum
-    return sum + (item.price * item.quantity) / item.claimed_by.length
+    const total = item.price * item.quantity
+    if (item.shares && item.shares[myName]) {
+      const totalWeight = Object.values(item.shares).reduce((s, w) => s + w, 0)
+      return sum + (item.shares[myName] / totalWeight) * total
+    }
+    return sum + total / item.claimed_by.length
   }, 0)
 
   const handleConfirm = (claimers) => {
@@ -52,9 +57,14 @@ export default function ItemList() {
         {items.map((item) => {
           const myClaim = item.claimed_by.includes(myName)
           const splitCount = item.claimed_by.length
-          const displayPrice = splitCount > 0
-            ? (item.price * item.quantity) / splitCount
-            : item.price * item.quantity
+          const totalPrice = item.price * item.quantity
+          const displayPrice = (() => {
+            if (myClaim && item.shares && item.shares[myName]) {
+              const totalWeight = Object.values(item.shares).reduce((s, w) => s + w, 0)
+              return (item.shares[myName] / totalWeight) * totalPrice
+            }
+            return splitCount > 0 ? totalPrice / splitCount : totalPrice
+          })()
 
           return (
             <button

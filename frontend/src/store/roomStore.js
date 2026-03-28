@@ -93,17 +93,18 @@ export const useRoomStore = create((set, get) => ({
   },
 
   // ── Set who claimed an item (replaces full claimed_by list) ──
-  setItemClaimers: async (itemId, claimers) => {
+  setItemClaimers: async (itemId, shares) => {
     const { room } = get()
     if (!room) return
-    // Optimistic update
+    // Optimistic update — shares is {name: weight}
+    const claimedBy = Object.keys(shares).filter((k) => shares[k] > 0)
     set((s) => ({
       room: {
         ...s.room,
         receipt: {
           ...s.room.receipt,
           items: s.room.receipt.items.map((i) =>
-            i.id === itemId ? { ...i, claimed_by: claimers } : i
+            i.id === itemId ? { ...i, claimed_by: claimedBy, shares } : i
           ),
         },
       },
@@ -112,7 +113,7 @@ export const useRoomStore = create((set, get) => ({
       await fetch(`${API}/rooms/${room.code}/items/${itemId}/claimers`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(claimers),
+        body: JSON.stringify(shares),
       })
     } catch (e) {
       console.error('setItemClaimers failed', e)
@@ -161,7 +162,9 @@ export const useRoomStore = create((set, get) => ({
             receipt: {
               ...s.room.receipt,
               items: s.room.receipt.items.map((i) =>
-                i.id === msg.item_id ? { ...i, claimed_by: msg.claimed_by } : i
+                i.id === msg.item_id
+                  ? { ...i, claimed_by: msg.claimed_by, shares: msg.shares ?? i.shares ?? {} }
+                  : i
               ),
             },
           },

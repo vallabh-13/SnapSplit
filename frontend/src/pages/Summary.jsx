@@ -48,6 +48,10 @@ export default function Summary() {
 
   const allParticipants = summary.participants.map((p) => p.name)
 
+  const allocatedTotal = summary.allocated_total ?? summary.participants.reduce((s, p) => s + p.total, 0)
+  const mismatch = Math.abs(allocatedTotal - summary.receipt_total) > 0.02
+  const unclaimedItems = summary.unclaimed_items ?? []
+
   return (
     <div className="min-h-screen bg-night-950 relative overflow-hidden">
       {/* Ambient orbs */}
@@ -92,6 +96,39 @@ export default function Summary() {
             ${summary.receipt_total.toFixed(2)}
           </p>
         </div>
+
+        {/* Mismatch error */}
+        {mismatch && (
+          <div className="rounded-3xl p-4 space-y-3 mb-2" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)' }}>
+            <div className="flex items-start gap-3">
+              <span className="text-xl flex-shrink-0">⚠️</span>
+              <div className="space-y-1">
+                <p className="text-red-400 font-semibold text-sm">Totals don't add up</p>
+                <p className="text-red-400/70 text-xs">
+                  Allocated <span className="font-bold">${allocatedTotal.toFixed(2)}</span> of <span className="font-bold">${summary.receipt_total.toFixed(2)}</span> receipt total
+                  {' '}(${Math.abs(summary.receipt_total - allocatedTotal).toFixed(2)} {allocatedTotal < summary.receipt_total ? 'uncovered' : 'over'})
+                </p>
+              </div>
+            </div>
+            {unclaimedItems.length > 0 && (
+              <div className="space-y-1.5 border-t border-red-400/20 pt-3">
+                <p className="text-red-400/60 text-xs font-semibold uppercase tracking-wider">Unclaimed items</p>
+                {unclaimedItems.map((item, i) => (
+                  <div key={i} className="flex justify-between text-sm">
+                    <span className="text-red-300/80">{item.name}</span>
+                    <span className="text-red-400 font-semibold">${item.total.toFixed(2)}</span>
+                  </div>
+                ))}
+                <button
+                  onClick={() => navigate(`/room/${code}`)}
+                  className="w-full mt-2 py-2.5 rounded-2xl text-sm font-semibold text-red-400 border border-red-400/30 hover:bg-red-500/10 transition-colors"
+                >
+                  ← Go back and claim missing items
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Person cards */}
         <div className="space-y-3">

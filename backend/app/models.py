@@ -10,6 +10,7 @@ class ReceiptItem(BaseModel):
     price: float
     quantity: int = 1
     claimed_by: list[str] = []  # list of participant names
+    shares: dict[str, float] = {}  # name -> share weight (e.g. {Alice: 2, Bob: 1})
 
 
 class Receipt(BaseModel):

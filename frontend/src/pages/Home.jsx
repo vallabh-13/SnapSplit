@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useRoomStore } from '../store/roomStore'
+import { QRCodeSVG } from 'qrcode.react'
 
-const STEP = { IDLE: 'idle', NAMING: 'naming', PREVIEW: 'preview', SCANNING: 'scanning' }
+const STEP = { IDLE: 'idle', NAMING: 'naming', PREVIEW: 'preview', SCANNING: 'scanning', SHARING: 'sharing' }
 
 export default function Home() {
   const navigate = useNavigate()
@@ -15,6 +16,7 @@ export default function Home() {
   const [preview, setPreview] = useState(null)
   const [joinCode, setJoinCode] = useState('')
   const [showJoin, setShowJoin] = useState(false)
+  const [roomCode, setRoomCode] = useState(null)
 
   const openCamera = () => fileRef.current?.click()
 
@@ -37,7 +39,8 @@ export default function Home() {
     setStep(STEP.SCANNING)
     const code = await scanAndCreateRoom(name.trim(), file)
     if (code) {
-      navigate(`/room/${code}`)
+      setRoomCode(code)
+      setStep(STEP.SHARING)
     } else {
       setStep(STEP.PREVIEW)
     }
@@ -107,6 +110,13 @@ export default function Home() {
             setFile(null)
             if (fileRef.current) fileRef.current.value = ''
           }}
+        />
+      )}
+
+      {step === STEP.SHARING && roomCode && (
+        <SharingScreen
+          code={roomCode}
+          onContinue={() => navigate(`/room/${roomCode}`)}
         />
       )}
     </div>
@@ -237,6 +247,75 @@ function NamingScreen({ name, setName, onBack, onContinue }) {
             </svg>
           </button>
         </form>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Sharing screen ─────────────────────────────── */
+function SharingScreen({ code, onContinue }) {
+  const [copied, setCopied] = useState(false)
+  const url = `${window.location.origin}/room/${code}`
+
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(url) } catch {}
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="relative flex flex-col flex-1 px-6 pt-16 pb-10 min-h-screen items-center justify-center">
+      <div className="w-full max-w-sm space-y-6 animate-fade-in">
+        {/* Header */}
+        <div className="text-center space-y-1">
+          <div className="text-4xl mb-3">🎉</div>
+          <h2 className="text-3xl font-bold">Receipt scanned!</h2>
+          <p className="text-white/40 text-base">Share this QR so others can join the split</p>
+        </div>
+
+        {/* QR card */}
+        <div className="glass rounded-3xl p-6 space-y-5">
+          <div className="flex flex-col items-center gap-4">
+            <div className="bg-white p-4 rounded-2xl">
+              <QRCodeSVG value={url} size={180} bgColor="#ffffff" fgColor="#06060f" level="M" />
+            </div>
+            <div className="text-center">
+              <p className="text-white/40 text-xs uppercase tracking-widest font-medium mb-1">Room Code</p>
+              <p className="text-4xl font-extrabold tracking-[0.3em] text-gradient-violet">{code}</p>
+            </div>
+          </div>
+
+          <p className="text-white/30 text-xs text-center">
+            Others scan this QR → enter their name → claim their items
+          </p>
+
+          <button
+            onClick={copy}
+            className={`w-full py-3.5 rounded-2xl font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2
+              ${copied
+                ? 'bg-emerald-500/20 border border-emerald-400/40 text-emerald-400'
+                : 'bg-white/[0.06] border border-white/[0.1] text-white/70 hover:text-white hover:bg-white/10'
+              }`}
+          >
+            {copied ? '✓ Link copied!' : (
+              <>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Copy Invite Link
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Continue button */}
+        <button
+          onClick={onContinue}
+          className="btn-primary w-full py-5 text-lg flex items-center justify-center gap-2"
+        >
+          <span>💰</span>
+          Start Splitting
+        </button>
       </div>
     </div>
   )

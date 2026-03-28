@@ -62,8 +62,8 @@ async def claim_item(code: str, payload: ClaimRequest):
 
 
 @router.put("/{code}/items/{item_id}/claimers")
-async def set_item_claimers(code: str, item_id: str, claimers: list[str]):
-    room = room_service.set_item_claimers(code, item_id, claimers)
+async def set_item_claimers(code: str, item_id: str, shares: dict[str, float]):
+    room = room_service.set_item_claimers(code, item_id, shares)
     if room is None:
         raise HTTPException(status_code=404, detail="Room or item not found")
 
@@ -75,6 +75,7 @@ async def set_item_claimers(code: str, item_id: str, claimers: list[str]):
         "type": "item_claimed",
         "item_id": item_id,
         "claimed_by": updated_item.claimed_by if updated_item else [],
+        "shares": updated_item.shares if updated_item else {},
     })
 
     return {"item": updated_item.model_dump() if updated_item else None}
