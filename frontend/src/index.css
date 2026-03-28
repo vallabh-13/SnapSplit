@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    background-color: #06060f;
+    color: #ffffff;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+  * { box-sizing: border-box; }
+}
+
+@layer components {
+  /* ── Glass cards ── */
+  .glass {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .glass-strong {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+
+  /* ── Buttons ── */
+  .btn-primary {
+    @apply relative overflow-hidden bg-gradient-to-r from-violet-600 to-indigo-600
+           text-white font-semibold rounded-3xl transition-all duration-200
+           active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed
+           select-none touch-manipulation;
+    box-shadow: 0 0 40px rgba(124,58,237,0.45), 0 4px 24px rgba(0,0,0,0.4);
+  }
+  .btn-primary:not(:disabled):hover {
+    box-shadow: 0 0 60px rgba(124,58,237,0.6), 0 4px 24px rgba(0,0,0,0.4);
+  }
+  .btn-ghost {
+    @apply text-white/50 font-medium rounded-3xl transition-all duration-200
+           hover:text-white hover:bg-white/[0.06] active:scale-[0.97]
+           select-none touch-manipulation;
+  }
+  .btn-danger {
+    @apply bg-red-500/10 border border-red-500/30 text-red-400 font-medium
+           rounded-2xl transition-all duration-150 active:scale-[0.97]
+           select-none touch-manipulation;
+  }
+
+  /* ── Inputs ── */
+  .input {
+    @apply bg-white/[0.06] border border-white/[0.1] text-white placeholder-white/25
+           rounded-2xl px-4 py-3.5 w-full focus:outline-none focus:border-violet-500/60
+           transition-colors duration-150 font-medium;
+  }
+
+  /* ── Gradient text ── */
+  .text-gradient {
+    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.55) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .text-gradient-amber {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .text-gradient-violet {
+    background: linear-gradient(135deg, #a78bfa, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
