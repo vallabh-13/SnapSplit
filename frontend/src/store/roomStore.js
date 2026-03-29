@@ -1,7 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-const API = import.meta.env.VITE_API_URL || '/api'
+let rawAPI = import.meta.env.VITE_API_URL || ''
+if (rawAPI && !rawAPI.endsWith('/api')) {
+  rawAPI = rawAPI.replace(/\/$/, '') + '/api'
+} else if (!rawAPI) {
+  rawAPI = '/api'
+}
+const API = rawAPI
 
 export const useRoomStore = create(
   persist(
@@ -44,7 +50,11 @@ export const useRoomStore = create(
             `${API}/rooms?host_name=${encodeURIComponent(name)}`,
             { method: 'POST' }
           )
-          if (!roomRes.ok) throw new Error('Could not create room')
+          if (!roomRes.ok) {
+            const errorText = await roomRes.text();
+            console.error('Room creation failed:', roomRes.status, errorText);
+            throw new Error(`Could not create room: ${roomRes.status} ${errorText}`);
+          }
           const roomData = await roomRes.json()
           const code = roomData.room.code
           // Don't set lastRoomCode yet — setting it triggers auto-redirect in HomeOrResume

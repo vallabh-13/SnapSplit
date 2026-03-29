@@ -56,12 +56,13 @@ async def validate_receipt_image(image_bytes: bytes, media_type: str = "image/jp
     client = genai.Client(api_key=api_key)
 
     response = await client.aio.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-1.5-flash",
         contents=[
             types.Part.from_bytes(data=image_bytes, mime_type=media_type),
             VALIDATION_PROMPT,
         ],
     )
+
 
     answer = response.text.strip().lower()
     return answer.startswith("yes")
@@ -75,12 +76,13 @@ async def extract_receipt_items(image_bytes: bytes, media_type: str = "image/jpe
     client = genai.Client(api_key=api_key)
 
     response = await client.aio.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-1.5-flash",
         contents=[
             types.Part.from_bytes(data=image_bytes, mime_type=media_type),
-            RECEIPT_EXTRACTION_PROMPT,
+            VALIDATION_PROMPT,
         ],
     )
+
 
     raw = response.text.strip()
 
