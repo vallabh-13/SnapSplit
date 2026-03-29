@@ -34,9 +34,8 @@ export default function ItemList() {
   const { items, tax, tip, subtotal, total } = room.receipt
   const participants = room.participants
 
-  const actualSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const taxRate = actualSubtotal > 0 ? tax / actualSubtotal : 0
-  const tipRate = actualSubtotal > 0 ? tip / actualSubtotal : 0
+  const taxRate = subtotal > 0 ? tax / subtotal : 0
+  const tipRate = subtotal > 0 ? tip / subtotal : 0
 
   const mySubtotal = items.reduce((sum, item) => {
     const myUnits = item.shares?.[myName] ?? 0
