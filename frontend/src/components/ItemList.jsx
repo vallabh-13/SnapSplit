@@ -273,30 +273,6 @@ function ItemRow({ item, participants, myName, isExpanded, onToggle, onSave }) {
       {isExpanded && (
         <div className="px-4 pb-4 pt-3 space-y-3 border-t border-white/[0.07] animate-fade-in">
 
-          {/* Availability bar */}
-          <div className="space-y-1.5">
-            <div className="flex justify-between text-xs text-white/35">
-              <span>{totalClaimed.toFixed(totalClaimed % 1 ? 2 : 0)} / {totalUnits} unit{totalUnits !== 1 ? 's' : ''}</span>
-              <span className={isOverLimit ? 'text-red-400 font-semibold' : remaining > 0.001 ? 'text-amber-400' : 'text-emerald-400'}>
-                {isOverLimit
-                  ? `${(myUnits - maxForMe).toFixed(2)} over limit`
-                  : remaining > 0.001
-                    ? `${remaining.toFixed(remaining % 1 ? 2 : 0)} remaining`
-                    : 'Fully claimed'}
-              </span>
-            </div>
-            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden flex">
-              {sharedMode ? (
-                <div className="h-full bg-emerald-500/70 transition-all duration-200" style={{ width: `${sharedBarPct}%` }} />
-              ) : (
-                <>
-                  <div className="h-full bg-sky-500/70 transition-all duration-200" style={{ width: `${othersBarPct}%` }} />
-                  <div className={`h-full transition-all duration-200 ${isOverLimit ? 'bg-red-500' : 'bg-violet-500'}`} style={{ width: `${myBarPct}%` }} />
-                </>
-              )}
-            </div>
-          </div>
-
           {/* Others' locked claims */}
           {!sharedMode && Object.keys(otherClaims).length > 0 && (
             <div className="space-y-1">
@@ -335,14 +311,13 @@ function ItemRow({ item, participants, myName, isExpanded, onToggle, onSave }) {
               </button>
             </div>
 
+            {!sharedMode && (
             <div className={`flex items-center gap-2 px-3 py-2.5 rounded-2xl border transition-colors
-              ${sharedMode
-                ? 'opacity-50 bg-white/[0.02] border-white/[0.06]'
-                : isOverLimit
-                  ? 'bg-red-500/10 border-red-400/40'
-                  : myUnits > 0
-                    ? 'bg-violet-500/10 border-violet-400/30'
-                    : 'bg-white/[0.04] border-white/[0.08]'}`}
+              ${isOverLimit
+                ? 'bg-red-500/10 border-red-400/40'
+                : myUnits > 0
+                  ? 'bg-violet-500/10 border-violet-400/30'
+                  : 'bg-white/[0.04] border-white/[0.08]'}`}
             >
               <div className={`w-7 h-7 rounded-full ${AVATAR_BG[participants.indexOf(myName) % AVATAR_BG.length]} flex items-center justify-center text-xs font-bold text-white flex-shrink-0`}>
                 {myName[0].toUpperCase()}
@@ -374,6 +349,7 @@ function ItemRow({ item, participants, myName, isExpanded, onToggle, onSave }) {
                 </button>
               </div>
             </div>
+            )}
 
             {isOverLimit && !sharedMode && (
               <p className="text-red-400 text-xs text-center">
@@ -447,6 +423,30 @@ function ItemRow({ item, participants, myName, isExpanded, onToggle, onSave }) {
                   ? `Claim · $${(myUnits * unitPrice).toFixed(2)}`
                   : 'Not mine'}
             </button>
+          </div>
+
+          {/* Availability bar — bottom */}
+          <div className="space-y-1.5 pt-1">
+            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden flex">
+              {sharedMode ? (
+                <div className="h-full bg-emerald-500/70 transition-all duration-200" style={{ width: `${sharedBarPct}%` }} />
+              ) : (
+                <>
+                  <div className="h-full bg-sky-500/70 transition-all duration-200" style={{ width: `${othersBarPct}%` }} />
+                  <div className={`h-full transition-all duration-200 ${isOverLimit ? 'bg-red-500' : 'bg-violet-500'}`} style={{ width: `${myBarPct}%` }} />
+                </>
+              )}
+            </div>
+            <div className="flex justify-between text-xs text-white/30">
+              <span>{totalClaimed.toFixed(totalClaimed % 1 ? 2 : 0)} / {totalUnits} unit{totalUnits !== 1 ? 's' : ''} claimed</span>
+              <span className={isOverLimit ? 'text-red-400 font-semibold' : remaining > 0.001 ? 'text-amber-400' : 'text-emerald-400'}>
+                {isOverLimit
+                  ? `${(myUnits - maxForMe).toFixed(2)} over limit`
+                  : remaining > 0.001
+                    ? `${remaining.toFixed(remaining % 1 ? 2 : 0)} remaining`
+                    : 'Fully claimed'}
+              </span>
+            </div>
           </div>
         </div>
       )}
