@@ -165,10 +165,10 @@ export default function Room() {
         <div className="flex justify-center">
           <button
             onClick={() => setShowQR((v) => !v)}
-            className="flex items-center gap-2 hover:opacity-70 transition-opacity"
+            className="flex items-center gap-3 hover:opacity-70 transition-opacity"
           >
-            <span className="text-white/40 text-xs font-mono tracking-widest">{code}</span>
-            <span className="text-white/25 text-xs">{showQR ? '▲' : '▼'} share</span>
+            <span className="text-white/35 text-sm">{showQR ? '▲' : '▼'} share</span>
+            <span className="text-white/50 text-base font-mono tracking-widest">{code}</span>
           </button>
         </div>
       </header>
@@ -237,7 +237,7 @@ export default function Room() {
             className="btn-primary w-full py-4 text-base flex items-center justify-center gap-2"
             onClick={() => navigate(`/summary/${code}`)}
           >
-            <span>💰</span>
+            <span></span>
             Calculate My Split
           </button>
         </div>

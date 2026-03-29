@@ -95,7 +95,7 @@ export default function ItemList() {
           }}
         >
           <div className="flex items-center justify-between">
-            <p className="text-white/50 text-xs font-medium uppercase tracking-wider">Your total so far</p>
+            <p className="text-white/50 text-xs font-bold uppercase tracking-wider">Your total so far</p>
             <p className="text-3xl font-extrabold text-gradient-amber">${myTotal.toFixed(2)}</p>
           </div>
           <div className="space-y-0.5 border-t border-white/[0.08] pt-2">
