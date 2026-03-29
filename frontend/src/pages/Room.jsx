@@ -107,60 +107,68 @@ export default function Room() {
       </div>
 
       {/* ── Header ── */}
-      <header className="relative flex items-center justify-between px-5 pt-12 pb-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-extrabold text-gradient">SnapSplit</span>
-            <button
-              onClick={() => { clearSession(); navigate('/') }}
-              className="text-white/25 hover:text-white/60 transition-colors text-xs px-1.5 py-0.5 rounded-lg hover:bg-white/[0.06]"
-              title="Leave room"
-            >
-              leave
-            </button>
-          </div>
-          <button
-            onClick={() => setShowQR((v) => !v)}
-            className="flex items-center gap-2 mt-0.5"
-          >
-            <span className="text-white/40 text-xs font-mono tracking-widest">{code}</span>
-            <span className="text-white/30 text-xs">{showQR ? '▲' : '▼'} share</span>
-          </button>
-        </div>
+      <header className="relative px-5 pt-12 pb-3 space-y-2">
+        {/* Line 1: logo | members  extra-cost | leave */}
+        <div className="flex items-center gap-3">
+          <span className="text-3xl font-extrabold text-gradient leading-none shrink-0">SnapSplit</span>
+          <div className="w-px h-7 bg-white/10 shrink-0" />
 
-        {/* Participant stack */}
-        <div className="flex items-center gap-1">
-          <div className="flex -space-x-2.5 mr-2">
+          {/* Member avatars */}
+          <div className="flex -space-x-2">
             {participants.slice(0, 5).map((p, i) => (
               <div
                 key={p}
-                className={`w-8 h-8 rounded-full ${AVATAR_BG[i % AVATAR_BG.length]}
-                            flex items-center justify-center text-xs font-bold text-white
-                            border-2 border-night-950`}
+                className={`w-7 h-7 rounded-full ${AVATAR_BG[i % AVATAR_BG.length]} flex items-center justify-center text-xs font-bold text-white border-2 border-night-950`}
                 title={p}
               >
                 {p[0].toUpperCase()}
               </div>
             ))}
             {participants.length > 5 && (
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs text-white/50 border-2 border-night-950">
+              <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-xs text-white/50 border-2 border-night-950">
                 +{participants.length - 5}
               </div>
             )}
           </div>
 
-          {/* Adjust tip/tax button */}
+          <div className="flex-1" />
+
+          {/* Extra cost (tip & tax) */}
           {hasReceipt && (
             <button
               onClick={() => setShowAdjust((v) => !v)}
-              className="w-8 h-8 rounded-full glass flex items-center justify-center text-white/50 hover:text-white transition-colors"
+              className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-colors ${showAdjust ? 'bg-amber-500/20 text-amber-400' : 'glass text-amber-400/60 hover:text-amber-400'}`}
               title="Adjust tip & tax"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <line x1="19" y1="5" x2="5" y2="19" strokeLinecap="round" />
+                <circle cx="6.5" cy="6.5" r="2.5" />
+                <circle cx="17.5" cy="17.5" r="2.5" />
               </svg>
             </button>
           )}
+
+          {/* Leave */}
+          <button
+            onClick={() => { clearSession(); navigate('/') }}
+            className="w-9 h-9 rounded-2xl flex items-center justify-center bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors border border-red-500/20"
+            title="Leave room"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Line 2: room code + share — centered */}
+        <div className="flex justify-center">
+          <button
+            onClick={() => setShowQR((v) => !v)}
+            className="flex items-center gap-2 hover:opacity-70 transition-opacity"
+          >
+            <span className="text-white/40 text-xs font-mono tracking-widest">{code}</span>
+            <span className="text-white/25 text-xs">{showQR ? '▲' : '▼'} share</span>
+          </button>
         </div>
       </header>
 
