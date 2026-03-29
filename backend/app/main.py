@@ -41,7 +41,7 @@ async def health():
     return {"status": "ok"}
 
 
-@app.websocket("/ws/{room_code}/{participant_name}")
+@app.websocket("/api/ws/{room_code}/{participant_name}")
 async def websocket_endpoint(websocket: WebSocket, room_code: str, participant_name: str):
     room_code = room_code.upper()
     await manager.connect(websocket, room_code, participant_name)
