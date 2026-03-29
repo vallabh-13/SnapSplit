@@ -68,6 +68,7 @@ def update_tip_tax(code: str, tip: float, tax: float) -> Optional[Room]:
         return None
     room.receipt.tip = tip
     room.receipt.tax = tax
+    room.receipt.total = round(room.receipt.subtotal + tax + tip, 2)
     return room
 
 
