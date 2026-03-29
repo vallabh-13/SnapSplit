@@ -6,7 +6,8 @@
       "Bash(find D:/HTML/SnapSplit -iname *.png -o -iname *.jpg -o -iname *.jpeg -o -iname *.svg -o -iname *.webp)",
       "Bash(python:*)",
       "Bash(curl -s http://localhost:8000/api/rooms)",
-      "Bash(curl -s http://localhost:8000/api/rooms/TEST)"
+      "Bash(curl -s http://localhost:8000/api/rooms/TEST)",
+      "Bash(git add:*)"
     ]
   }
 }
