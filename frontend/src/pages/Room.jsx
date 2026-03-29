@@ -17,6 +17,7 @@ export default function Room() {
   const { room, myName, fetchRoom, joinRoom, clearSession, loading, error } = useRoomStore()
   const [showQR, setShowQR] = useState(true)
   const [showAdjust, setShowAdjust] = useState(false)
+  const [confirmLeave, setConfirmLeave] = useState(false)
   const [joinName, setJoinName] = useState('')
   const [joining, setJoining] = useState(false)
   const [joinError, setJoinError] = useState(null)
@@ -150,7 +151,7 @@ export default function Room() {
 
           {/* Leave */}
           <button
-            onClick={() => { clearSession(); navigate('/') }}
+            onClick={() => setConfirmLeave(true)}
             className="w-9 h-9 rounded-2xl flex items-center justify-center bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors border border-red-500/20"
             title="Leave room"
           >
@@ -171,6 +172,42 @@ export default function Room() {
           </button>
         </div>
       </header>
+
+      {/* ── Leave confirmation overlay ── */}
+      {confirmLeave && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={() => setConfirmLeave(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" />
+          <div
+            className="relative w-full max-w-sm rounded-3xl p-6 space-y-5 animate-fade-in"
+            style={{ background: '#0d0d1f', border: '1px solid rgba(239,68,68,0.25)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
+                <svg className="w-6 h-6 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold">Leave this room?</h3>
+              <p className="text-white/40 text-sm">Your claimed items will be lost and you'll need the room code to rejoin.</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmLeave(false)}
+                className="flex-1 py-3 rounded-2xl glass text-white/60 hover:text-white font-semibold text-sm transition-colors"
+              >
+                Stay
+              </button>
+              <button
+                onClick={() => { clearSession(); navigate('/') }}
+                className="flex-1 py-3 rounded-2xl bg-red-500/15 hover:bg-red-500/25 text-red-400 hover:text-red-300 font-semibold text-sm transition-colors border border-red-500/20"
+              >
+                Leave
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── QR Panel ── */}
       <RoomQR code={code} collapsed={!showQR} />
