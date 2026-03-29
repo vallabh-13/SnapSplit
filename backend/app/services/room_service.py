@@ -116,9 +116,10 @@ def compute_summary(code: str) -> Optional[dict]:
             })
             person_subtotals[person] += person_price
 
-    # Use rate-based tax/tip: each person pays the same % on their own food amount
-    tax_rate = receipt.tax / receipt.subtotal if receipt.subtotal > 0 else 0
-    tip_rate = receipt.tip / receipt.subtotal if receipt.subtotal > 0 else 0
+    # Use actual item sum as base so that sum(person totals) == receipt.total
+    actual_subtotal = round(sum(i.price * i.quantity for i in items), 2)
+    tax_rate = receipt.tax / actual_subtotal if actual_subtotal > 0 else 0
+    tip_rate = receipt.tip / actual_subtotal if actual_subtotal > 0 else 0
 
     summaries = []
     for person in room.participants:

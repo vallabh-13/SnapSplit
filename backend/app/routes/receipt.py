@@ -75,7 +75,7 @@ async def scan_receipt(
         for item in data.get("items", [])
     ]
 
-    subtotal = float(data.get("subtotal", sum(i.price * i.quantity for i in items)))
+    subtotal = round(sum(i.price * i.quantity for i in items), 2)
     tax = float(data.get("tax", 0))
     tip = float(data.get("tip", 0))
     receipt = Receipt(
