@@ -1,9 +1,10 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { useRoomStore } from '../store/roomStore'
 
-const WS_BASE = window.location.protocol === 'https:'
-  ? `wss://${window.location.host}`
-  : `ws://${window.location.host}`
+const apiUrl = import.meta.env.VITE_API_URL
+const WS_BASE = apiUrl
+  ? apiUrl.replace(/^https:\/\//, 'wss://').replace(/^http:\/\//, 'ws://')
+  : (window.location.protocol === 'https:' ? `wss://${window.location.host}` : `ws://${window.location.host}`)
 
 export function useWebSocket(roomCode, participantName) {
   const ws = useRef(null)

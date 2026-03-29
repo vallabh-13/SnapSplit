@@ -1,0 +1,15 @@
+[Unit]
+Description=SnapSplit FastAPI Backend
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/SnapSplit/backend
+Environment="PATH=/home/ubuntu/SnapSplit/venv/bin"
+EnvironmentFile=/home/ubuntu/SnapSplit/backend/.env
+ExecStart=/home/ubuntu/SnapSplit/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
