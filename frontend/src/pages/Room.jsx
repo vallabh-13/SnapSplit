@@ -14,7 +14,7 @@ const AVATAR_BG = [
 export default function Room() {
   const { code } = useParams()
   const navigate = useNavigate()
-  const { room, myName, fetchRoom, joinRoom, loading, error } = useRoomStore()
+  const { room, myName, fetchRoom, joinRoom, clearSession, loading, error } = useRoomStore()
   const [showQR, setShowQR] = useState(true)
   const [showAdjust, setShowAdjust] = useState(false)
   const [joinName, setJoinName] = useState('')
@@ -24,7 +24,15 @@ export default function Room() {
   useWebSocket(code, myName || null)
 
   useEffect(() => {
-    if (myName) fetchRoom(code)
+    if (myName) {
+      fetchRoom(code).then((result) => {
+        // Room gone (server restarted) — clear session and go home
+        if (result === null) {
+          clearSession()
+          navigate('/', { replace: true })
+        }
+      })
+    }
   }, [code, myName])
 
   // Auto-collapse QR once receipt is loaded
@@ -103,6 +111,13 @@ export default function Room() {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-lg font-extrabold text-gradient">SnapSplit</span>
+            <button
+              onClick={() => { clearSession(); navigate('/') }}
+              className="text-white/25 hover:text-white/60 transition-colors text-xs px-1.5 py-0.5 rounded-lg hover:bg-white/[0.06]"
+              title="Leave room"
+            >
+              leave
+            </button>
           </div>
           <button
             onClick={() => setShowQR((v) => !v)}
@@ -170,7 +185,7 @@ export default function Room() {
 
       {/* ── Bottom CTA ── */}
       {hasReceipt && (
-        <div className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto px-4 pb-8 pt-4"
+        <div className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto px-4 pt-4 pb-safe"
           style={{ background: 'linear-gradient(to top, #06060f 60%, transparent)' }}
         >
           <button

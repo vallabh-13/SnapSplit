@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form
-from app.services.claude_service import extract_receipt_items
+from app.services.claude_service import extract_receipt_items, validate_receipt_image
 from app.services import room_service
 from app.models import Receipt, ReceiptItem
 from app.websocket.manager import manager
@@ -17,6 +17,26 @@ ALLOWED_MEDIA_TYPES = {
     "image/webp": "image/webp",
     "image/gif": "image/gif",
 }
+
+
+@router.post("/validate")
+async def validate_receipt(file: UploadFile = File(...)):
+    content_type = file.content_type or "image/jpeg"
+    if content_type not in ALLOWED_MEDIA_TYPES:
+        raise HTTPException(status_code=400, detail=f"Unsupported image type: {content_type}")
+
+    image_bytes = await file.read()
+    if len(image_bytes) > 20 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image too large (max 20 MB)")
+
+    try:
+        is_receipt = await validate_receipt_image(image_bytes, ALLOWED_MEDIA_TYPES[content_type])
+    except Exception as e:
+        logger.error("Validation error:\n%s", traceback.format_exc())
+        # On error, allow through so the main scan can handle it
+        is_receipt = True
+
+    return {"is_receipt": is_receipt}
 
 
 @router.post("/scan")
@@ -37,6 +57,12 @@ async def scan_receipt(
     except Exception as e:
         logger.error("Gemini API error:\n%s", traceback.format_exc())
         raise HTTPException(status_code=502, detail=f"Gemini API error: {str(e)}")
+
+    if not data.get("is_receipt", True):
+        raise HTTPException(
+            status_code=422,
+            detail="NOT_A_RECEIPT"
+        )
 
     # Build receipt model
     items = [

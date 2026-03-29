@@ -11,7 +11,7 @@ const AVATAR_BG = [
 export default function Summary() {
   const { code } = useParams()
   const navigate = useNavigate()
-  const { fetchSummary, summary, myName } = useRoomStore()
+  const { fetchSummary, summary, myName, room } = useRoomStore()
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -140,6 +140,7 @@ export default function Summary() {
               avatarBg={AVATAR_BG[allParticipants.indexOf(person.name) % AVATAR_BG.length]}
               taxRate={summary.tax_rate ?? 0}
               tipRate={summary.tip_rate ?? 0}
+              canRequest={myName === room?.host && person.name !== myName}
             />
           ))}
         </div>
@@ -148,7 +149,7 @@ export default function Summary() {
   )
 }
 
-function PersonCard({ person, isMe, avatarBg, taxRate, tipRate }) {
+function PersonCard({ person, isMe, avatarBg, taxRate, tipRate, canRequest }) {
   const [open, setOpen] = useState(isMe)
 
   return (
@@ -230,8 +231,13 @@ function PersonCard({ person, isMe, avatarBg, taxRate, tipRate }) {
             </div>
           </div>
 
-          {/* Payment links */}
-          {person.total > 0 && <PaymentLinks person={person} />}
+          {/* Payment links — only the host can request money from others */}
+          {canRequest && person.total > 0 && <PaymentLinks person={person} />}
+          {!canRequest && isMe && person.total > 0 && (
+            <p className="text-white/20 text-xs text-center pt-1">
+              The host will send you a payment request
+            </p>
+          )}
         </div>
       )}
     </div>
