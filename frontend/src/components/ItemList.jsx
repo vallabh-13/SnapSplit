@@ -34,10 +34,17 @@ export default function ItemList() {
   const { items, tax, tip, subtotal, total } = room.receipt
   const participants = room.participants
 
+  const actualSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const taxRate = actualSubtotal > 0 ? tax / actualSubtotal : 0
+  const tipRate = actualSubtotal > 0 ? tip / actualSubtotal : 0
+
   const mySubtotal = items.reduce((sum, item) => {
     const myUnits = item.shares?.[myName] ?? 0
     return sum + myUnits * item.price
   }, 0)
+  const myTax = mySubtotal * taxRate
+  const myTip = mySubtotal * tipRate
+  const myTotal = mySubtotal + myTax + myTip
 
   const unclaimedCount = items.filter((i) => i.claimed_by.length === 0).length
 
@@ -81,17 +88,31 @@ export default function ItemList() {
 
       {mySubtotal > 0 && (
         <div
-          className="rounded-3xl p-4 flex items-center justify-between"
+          className="rounded-3xl p-4 space-y-2"
           style={{
             background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(79,70,229,0.1))',
             border: '1px solid rgba(124,58,237,0.3)',
           }}
         >
-          <div>
-            <p className="text-white/50 text-xs font-medium uppercase tracking-wider">Your items so far</p>
-            <p className="text-white/70 text-sm mt-0.5">+tax &amp; tip share on summary</p>
+          <div className="flex items-center justify-between">
+            <p className="text-white/50 text-xs font-medium uppercase tracking-wider">Your total so far</p>
+            <p className="text-3xl font-extrabold text-gradient-amber">${myTotal.toFixed(2)}</p>
           </div>
-          <p className="text-3xl font-extrabold text-gradient-amber">${mySubtotal.toFixed(2)}</p>
+          <div className="space-y-0.5 border-t border-white/[0.08] pt-2">
+            <div className="flex justify-between text-white/35 text-xs">
+              <span>Items</span><span>${mySubtotal.toFixed(2)}</span>
+            </div>
+            {myTax > 0 && (
+              <div className="flex justify-between text-white/35 text-xs">
+                <span>Tax</span><span>+${myTax.toFixed(2)}</span>
+              </div>
+            )}
+            {myTip > 0 && (
+              <div className="flex justify-between text-white/35 text-xs">
+                <span>Tip</span><span>+${myTip.toFixed(2)}</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
