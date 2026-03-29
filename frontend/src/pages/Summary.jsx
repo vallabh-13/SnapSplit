@@ -285,7 +285,7 @@ export default function Summary() {
             clearSession()
             navigate('/')
           }}
-          className="w-full py-4.5 rounded-[2rem] glass text-white/40 hover:text-white/70 active:scale-[0.98] font-bold text-sm transition-all flex items-center justify-center gap-3 shadow-xl border border-white/5"
+          className="w-full py-3.5 rounded-2xl glass text-white/40 hover:text-white/70 active:scale-[0.98] font-bold text-sm transition-all flex items-center justify-center gap-3 shadow-xl border border-white/5"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
