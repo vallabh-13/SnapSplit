@@ -56,7 +56,7 @@ async def validate_receipt_image(image_bytes: bytes, media_type: str = "image/jp
     client = genai.Client(api_key=api_key)
 
     response = await client.aio.models.generate_content(
-        model="gemini-1.5-flash-latest",
+        model="gemini-2.0-flash",
         contents=[
             types.Part.from_bytes(data=image_bytes, mime_type=media_type),
             VALIDATION_PROMPT,
@@ -76,7 +76,7 @@ async def extract_receipt_items(image_bytes: bytes, media_type: str = "image/jpe
     client = genai.Client(api_key=api_key)
 
     response = await client.aio.models.generate_content(
-        model="gemini-1.5-flash-latest",
+        model="gemini-2.0-flash",
         contents=[
             types.Part.from_bytes(data=image_bytes, mime_type=media_type),
             RECEIPT_EXTRACTION_PROMPT,
