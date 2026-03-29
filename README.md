@@ -2,6 +2,24 @@
 
 > It's a real-time PWA that allows a shared bill from a scanned receipt photo. Friends can join by QR, claim items, and see exact totals including tax/tip and one-tap payment.
 
+- **Live Website:** [Test Website](https://snapsplit-revuc2026.vercel.app/)
+- **Demo Video:** [Demo Video Link]()
+  
+---
+
+## Team Contributors
+
+- [Ilyaas Kapadia](https://www.linkedin.com/in/ilyaask/)
+- [Bhanudas Mahadik](https://www.linkedin.com/in/bhanudas-mahadik/)
+- [Nhi T.Le](https://www.linkedin.com/in/nhiledn06/)
+
+---
+
+## System Architecture Diagram
+
+
+![alt text](Diagram/makeuc-2025.png)
+
 ---
 
 ## Why We Built This
