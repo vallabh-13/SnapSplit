@@ -331,33 +331,36 @@ export default function Summary() {
               <p className="text-2xl font-extrabold text-gradient-amber mt-0.5">${me.total.toFixed(2)}</p>
             </div>
             <div className="divide-y divide-white/[0.06]">
-              {PAYMENT_APPS.map(({ label, sub, color, bg, svg, href }) => (
-                <a
-                  key={label}
-                  href={href(me.total.toFixed(2), `SnapSplit — ${myName}'s share`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-4 px-5 py-4 active:opacity-60 transition-opacity"
-                  style={{ background: bg }}
-                >
-                  <div
-                    className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'rgba(0,0,0,0.3)', border: `1px solid ${color}30` }}
+              {PAYMENT_APPS.map(({ label, sub, color, bg, svg, deepLink, iosStore, androidStore }) => {
+                const amount = me.total.toFixed(2)
+                const note = `SnapSplit — ${myName}'s share`
+                const link = typeof deepLink === 'function' ? deepLink(amount, note) : deepLink
+
+                return (
+                  <button
+                    key={label}
+                    onClick={() => openPayment(link, iosStore, androidStore)}
+                    className="w-full flex items-center gap-4 px-5 py-4 active:opacity-60 transition-opacity text-left"
+                    style={{ background: bg }}
                   >
-                    {svg}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-white text-sm">{label}</p>
-                    <p className="text-white/35 text-xs">{sub}</p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="font-bold text-sm" style={{ color }}>${me.total.toFixed(2)}</span>
-                    <svg className="w-4 h-4 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </a>
-              ))}
+                    <div
+                      className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'rgba(0,0,0,0.3)', border: `1px solid ${color}30` }}
+                    >
+                      {svg}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-white text-sm">{label}</p>
+                      <p className="text-white/35 text-xs">{sub}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <svg className="w-4 h-4 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}
