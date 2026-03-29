@@ -1,39 +1,38 @@
 # SnapSplit
 
-> Split restaurant bills in real time — scan a receipt, claim your items, done.
+> It's a real-time PWA that allows a shared bill from a scanned receipt photo. Friends can join by QR, claim items, and see exact totals including tax/tip and one-tap payment.
 
 ---
 
-## 🔥 Why We Built This
+## Why We Built This
 
-**The Problem:** Splitting a restaurant bill is surprisingly painful. Someone pulls out a calculator, others argue over who ordered what, and someone always ends up overpaying (or quietly underpaying). Existing apps either require everyone to manually enter items or only do an even split — neither of which reflects reality.
+**The Problem:** Splitting a restaurant bill is surprisingly painful. Someone pulls out a calculator, others argue over who ordered what, and someone always ends up overpaying.Existing apps either require everyone to manually enter items or only do an even split.
 
-**The Solution:** SnapSplit lets one person photograph the receipt. Claude Vision instantly extracts every line item and price. Everyone joins via a 6-character room code or QR scan, taps the items they ordered, and sees their exact share — tax and tip included — with a payment link ready to send. No manual entry. No arguments. No math.
+**The Solution:** SnapSplit lets one person photograph the receipt. gemini Vision instantly extracts every line item and price. Everyone joins via a 6-character room code or QR scan, taps the items they ordered, and sees their exact share with tax and tip included. A payment link is ready to send without no manual entry. No arguments. No math.
 
 ---
 
-## 🚀 How We Built It
+## How We Built It
 
-1. **Receipt Scanning** — A photo is uploaded to our FastAPI backend, base64-encoded, and sent to the Anthropic Claude Vision API, which returns structured JSON of line items and prices.
+1. **Receipt Scanning** — A photo is uploaded to our FastAPI backend, base64-encoded, and sent to the gemini API, which returns structured JSON of line items and prices.
 2. **Shareable Rooms** — Each bill gets a unique 6-char room code + QR code. Anyone can join without creating an account.
-3. **Real-Time Claiming** — WebSocket connections (managed by FastAPI) broadcast claim events to all participants instantly. Tap an item — everyone sees it update live.
+3. **Real-Time Claiming** — WebSocket connections (managed by FastAPI) broadcast claim events to all participants instantly. Tap an item adn everyone  will see it live.
 4. **Smart Totals** — Tax and tip are distributed proportionally based on each person's subtotal, not split evenly.
-5. **Payment Links** — Venmo, Cash App, and PayPal deep links are pre-filled with the exact amount owed, so settling up is one tap.
+5. **Payment Links** — Venmo, Cash App, Apple pay, Google pay and PayPal deep links are pre-filled with the exact amount owed, so settling up is one tap.
 
 ---
 
-## ✨ Features
+## Features
 
-- **Receipt Scanning** — Claude Vision extracts line items and prices from a photo
+- **Receipt Scanning** — Gemini extracts line items and prices from a photo
 - **Shareable Rooms** — 6-char code + QR code for instant joining, no account needed
-- **Real-Time Claiming** — tap items you ordered; syncs live via WebSocket to all participants
 - **Proportional Tax & Tip** — each person's share scales with their subtotal
-- **Payment Deep Links** — Venmo, Cash App, PayPal with pre-filled amounts
+- **Payment Deep Links** — Google pay, Apple pay, Venmo, Cash App, PayPal with pre-filled amounts
 - **PWA** — installable on iOS/Android, works offline after first load
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 SnapSplit/
@@ -75,15 +74,15 @@ SnapSplit/
 
 ---
 
-## ⚙️ Prerequisites
+## Prerequisites
 
 - **Node.js** 18+ and npm
 - **Python** 3.12+
-- **Anthropic API Key** — get one at [console.anthropic.com](https://console.anthropic.com)
+- **Genimi API Key** — get one at [aistudio.google.com](https://aistudio.google.com)
 
 ---
 
-## 🛠️ Local Development Setup
+## Local Development Setup
 
 ### Backend
 
@@ -116,48 +115,9 @@ npm run dev
 Frontend runs at `http://localhost:5173`
 
 ---
-
-## 🌐 Deployment
-
-| Layer | Platform | Details |
-|-------|----------|---------|
-| Frontend | Vercel | React + Vite, automatic deploys on push |
-| Backend | Render / Railway | FastAPI + Uvicorn, WebSocket support required |
-
-Update `VITE_BACKEND_URL` in `frontend/.env` to point at your deployed backend URL before building for production.
-
 ---
 
-## 📡 WebSocket Events
-
-| Event | Direction | Payload |
-|-------|-----------|---------|
-| `room_state` | server → client | Full room snapshot on connect |
-| `receipt_updated` | server → all | New items after receipt scan |
-| `item_claimed` | server → all | `{item_id, claimed_by, action}` |
-| `participant_joined` | server → all | `{name, participants}` |
-| `participant_left` | server → all | `{name, participants}` |
-| `tip_tax_updated` | server → all | `{tip, tax}` |
-| `ping` / `pong` | client ↔ server | keepalive |
-
----
-
-## 🔧 Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ANTHROPIC_API_KEY` | — | **Required** — Anthropic API key |
-| `FRONTEND_URL` | `http://localhost:5173` | CORS origin |
-| `HOST` | `0.0.0.0` | Uvicorn host |
-| `PORT` | `8000` | Uvicorn port |
-
----
-
-## 🐛 Major Issues Fixed
-
-**Claude Vision JSON Parsing (inconsistent output format)**
-- Problem: Claude occasionally returned receipt data wrapped in markdown code fences or with inconsistent field names, causing the parser to crash.
-- Solution: Added a robust post-processing step that strips markdown formatting and normalizes field names before JSON parsing, with a fallback retry prompt if the first response is malformed.
+##  Major Issues Fixed
 
 **WebSocket Reconnection Race Condition**
 - Problem: If a client disconnected and reconnected mid-scan, they would receive a stale room state before the latest `receipt_updated` event arrived, showing old data.
@@ -173,9 +133,7 @@ Update `VITE_BACKEND_URL` in `frontend/.env` to point at your deployed backend U
 
 ---
 
-## 💡 What We Learned
-
-**Claude Vision for Structured Extraction** — Using a multimodal LLM to turn a photo into structured JSON is remarkably effective, but prompt engineering matters a lot. Asking Claude to return a specific schema (with examples in the prompt) dramatically reduced malformed responses compared to open-ended extraction.
+## What We Learned
 
 **Real-Time State with WebSockets + FastAPI** — Building a live multi-user experience over WebSockets taught us how to manage connection lifecycles, handle disconnects gracefully, and keep a single in-memory state store consistent across broadcasts.
 
