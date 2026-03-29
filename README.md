@@ -18,7 +18,7 @@
 ## System Architecture Diagram
 
 
-![alt text](Diagram/Wireframe.png)
+![alt text](Images/Wireframe.png)
 
 ---
 
