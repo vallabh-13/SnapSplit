@@ -18,7 +18,7 @@
 ## System Architecture Diagram
 
 
-![alt text](Diagram/makeuc-2025.png)
+![alt text](Diagram/Wireframe.png)
 
 ---
 
