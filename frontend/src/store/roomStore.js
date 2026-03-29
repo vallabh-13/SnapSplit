@@ -1,65 +1,82 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+// Determine the API base URL from environment variables
 let rawAPI = import.meta.env.VITE_API_URL || ''
-// Remove any trailing slashes or /api from the base URL
 rawAPI = rawAPI.replace(/\/api$/, '').replace(/\/$/, '')
-// Force /api at the end
 const API = rawAPI ? `${rawAPI}/api` : '/api'
 
+/**
+ * useRoomStore - Global state management for SnapSplit
+ * Handles room creation, joining, receipt scanning, item claiming, and real-time updates.
+ * Uses Zustand with persistence for session recovery.
+ */
 export const useRoomStore = create(
   persist(
     (set, get) => ({
-      room: null,
-      myName: '',
-      lastRoomCode: null,
-      loading: false,
-      error: null,
-      summary: null,
-      _hydrated: false,
-      _setHydrated: () => set({ _hydrated: true }),
+      // --- State ---
+      room: null,           // Current room data (code, participants, receipt items)
+      myName: '',           // Current user's participant name
+      lastRoomCode: null,   // Last accessed room code for session recovery
+      loading: false,       // Global loading indicator
+      error: null,          // Error message for UI display
+      summary: null,        // Calculated split summary
+      _hydrated: false,     // Whether persisted state has been loaded
 
+      // --- Actions ---
+      _setHydrated: () => set({ _hydrated: true }),
       setMyName: (name) => set({ myName: name }),
       setLastRoomCode: (code) => set({ lastRoomCode: code }),
       clearError: () => set({ error: null }),
 
-      clearSession: () => set({ myName: '', lastRoomCode: null, room: null, summary: null }),
+      /**
+       * Reset the current session and clear local storage.
+       */
+      clearSession: () => set({ 
+        myName: '', 
+        lastRoomCode: null, 
+        room: null, 
+        summary: null,
+        error: null 
+      }),
 
-      // ── Pre-check: fast yes/no receipt validation ──
+      /**
+       * Quick verification to check if an uploaded image is likely a receipt.
+       * Used to provide immediate feedback before the heavy AI scan.
+       */
       validateReceipt: async (file) => {
         try {
           const fd = new FormData()
           fd.append('file', file)
           const res = await fetch(`${API}/receipt/validate`, { method: 'POST', body: fd })
-          if (!res.ok) return true // on error, allow through
+          if (!res.ok) return true // Allow through on server error as fallback
           const data = await res.json()
           return data.is_receipt
         } catch {
-          return true // on network error, allow through
+          return true // Allow through on network error
         }
       },
 
-      // ── Create room + scan receipt (called only after image is validated) ──
+      /**
+       * Orchestrates room creation and full receipt scanning (item extraction).
+       */
       scanAndCreateRoom: async (name, file) => {
         set({ loading: true, error: null })
         try {
-          // 1. Create room
+          // 1. Create the room on the backend
           const roomRes = await fetch(
             `${API}/rooms?host_name=${encodeURIComponent(name)}`,
             { method: 'POST' }
           )
           if (!roomRes.ok) {
-            const errorText = await roomRes.text();
-            console.error('Room creation failed:', roomRes.status, errorText);
-            throw new Error(`Could not create room: ${roomRes.status} ${errorText}`);
+            const errorText = await roomRes.text()
+            throw new Error(`Could not create room: ${errorText}`)
           }
           const roomData = await roomRes.json()
           const code = roomData.room.code
-          // Don't set lastRoomCode yet — setting it triggers auto-redirect in HomeOrResume
-          // It gets set when the user intentionally navigates to the room
           set({ room: roomData.room, myName: name })
 
-          // 2. Scan receipt
+          // 2. Upload file for full AI extraction
           const fd = new FormData()
           fd.append('file', file)
           fd.append('room_code', code)
@@ -71,7 +88,12 @@ export const useRoomStore = create(
             throw new Error(detail || 'Receipt scan failed')
           }
           const scanData = await scanRes.json()
-          set((s) => ({ room: s.room ? { ...s.room, receipt: scanData.receipt } : null, loading: false }))
+          
+          // Update store with extracted items
+          set((s) => ({ 
+            room: s.room ? { ...s.room, receipt: scanData.receipt } : null, 
+            loading: false 
+          }))
           return code
         } catch (e) {
           set({ error: e.message, loading: false })
@@ -79,22 +101,9 @@ export const useRoomStore = create(
         }
       },
 
-      createRoom: async (hostName) => {
-        set({ loading: true, error: null })
-        try {
-          const res = await fetch(`${API}/rooms?host_name=${encodeURIComponent(hostName)}`, {
-            method: 'POST',
-          })
-          if (!res.ok) throw new Error(await res.text())
-          const data = await res.json()
-          set({ room: data.room, myName: hostName, lastRoomCode: data.room.code, loading: false })
-          return data.room.code
-        } catch (e) {
-          set({ error: e.message, loading: false })
-          return null
-        }
-      },
-
+      /**
+       * Joins an existing room by its code.
+       */
       joinRoom: async (code, name) => {
         set({ loading: true, error: null })
         try {
@@ -112,11 +121,13 @@ export const useRoomStore = create(
         }
       },
 
+      /**
+       * Fetches the current state of a room.
+       */
       fetchRoom: async (code) => {
         try {
           const res = await fetch(`${API}/rooms/${code}`)
           if (!res.ok) {
-            // Room gone (server restarted) — clear session so user isn't stuck
             if (res.status === 404) set({ lastRoomCode: null, room: null })
             return null
           }
@@ -128,11 +139,15 @@ export const useRoomStore = create(
         }
       },
 
-      // ── Set who claimed an item ──
+      /**
+       * Updates the claimers and share percentages for a specific item.
+       */
       setItemClaimers: async (itemId, shares) => {
         const { room } = get()
         if (!room) return
         const claimedBy = Object.keys(shares).filter((k) => shares[k] > 0)
+        
+        // Optimistic update for snappy UI
         set((s) => ({
           room: {
             ...s.room,
@@ -144,6 +159,7 @@ export const useRoomStore = create(
             },
           },
         }))
+
         try {
           await fetch(`${API}/rooms/${room.code}/items/${itemId}/claimers`, {
             method: 'PUT',
@@ -155,15 +171,20 @@ export const useRoomStore = create(
         }
       },
 
+      /**
+       * Updates global tip and tax for the receipt.
+       */
       updateTipTax: async (tip, tax) => {
         const { room } = get()
         if (!room) return
+        
         set((s) => ({
           room: {
             ...s.room,
             receipt: s.room.receipt ? { ...s.room.receipt, tip, tax } : null,
           },
         }))
+
         await fetch(`${API}/rooms/${room.code}/tip-tax`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -171,6 +192,9 @@ export const useRoomStore = create(
         })
       },
 
+      /**
+       * Fetches the final split summary.
+       */
       fetchSummary: async () => {
         const { room } = get()
         if (!room) return null
@@ -181,22 +205,26 @@ export const useRoomStore = create(
         return data
       },
 
-      // ── WebSocket patch ──
+      /**
+       * Applies real-time updates received via WebSocket.
+       */
       applyWsEvent: (msg) => {
         const { type } = msg
-        if (type === 'room_state') {
-          set({ room: msg.room })
-        } else if (type === 'receipt_updated') {
-          set((s) => ({ room: { ...s.room, receipt: msg.receipt } }))
-        } else if (type === 'item_claimed') {
-          set((s) => {
-            if (!s.room?.receipt) return s
+        set((state) => {
+          if (type === 'room_state') {
+            return { room: msg.room }
+          }
+          if (type === 'receipt_updated') {
+            return { room: { ...state.room, receipt: msg.receipt } }
+          }
+          if (type === 'item_claimed') {
+            if (!state.room?.receipt) return {}
             return {
               room: {
-                ...s.room,
+                ...state.room,
                 receipt: {
-                  ...s.room.receipt,
-                  items: s.room.receipt.items.map((i) =>
+                  ...state.room.receipt,
+                  items: state.room.receipt.items.map((i) =>
                     i.id === msg.item_id
                       ? { ...i, claimed_by: msg.claimed_by, shares: msg.shares ?? i.shares ?? {} }
                       : i
@@ -204,19 +232,22 @@ export const useRoomStore = create(
                 },
               },
             }
-          })
-        } else if (type === 'participant_joined' || type === 'participant_left') {
-          set((s) => ({ room: { ...s.room, participants: msg.participants } }))
-        } else if (type === 'tip_tax_updated') {
-          set((s) => ({
-            room: {
-              ...s.room,
-              receipt: s.room.receipt
-                ? { ...s.room.receipt, tip: msg.tip, tax: msg.tax }
-                : null,
-            },
-          }))
-        }
+          }
+          if (type === 'participant_joined' || type === 'participant_left') {
+            return { room: { ...state.room, participants: msg.participants } }
+          }
+          if (type === 'tip_tax_updated') {
+            return {
+              room: {
+                ...state.room,
+                receipt: state.room.receipt
+                  ? { ...state.room.receipt, tip: msg.tip, tax: msg.tax }
+                  : null,
+              },
+            }
+          }
+          return {}
+        })
       },
     }),
     {

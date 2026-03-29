@@ -19,10 +19,16 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="SnapSplit API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(
+    title="SnapSplit API",
+    description="Backend API for SnapSplit - bill splitting made easy.",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
+# Security & CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[frontend_url, "http://localhost:5173", "http://localhost:4173"],
@@ -31,6 +37,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 
 app.include_router(receipt.router)
 app.include_router(rooms.router)
