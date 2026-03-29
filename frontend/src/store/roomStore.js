@@ -2,12 +2,10 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 let rawAPI = import.meta.env.VITE_API_URL || ''
-if (rawAPI && !rawAPI.endsWith('/api')) {
-  rawAPI = rawAPI.replace(/\/$/, '') + '/api'
-} else if (!rawAPI) {
-  rawAPI = '/api'
-}
-const API = rawAPI
+// Remove any trailing slashes or /api from the base URL
+rawAPI = rawAPI.replace(/\/api$/, '').replace(/\/$/, '')
+// Force /api at the end
+const API = rawAPI ? `${rawAPI}/api` : '/api'
 
 export const useRoomStore = create(
   persist(

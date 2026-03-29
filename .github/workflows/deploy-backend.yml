@@ -20,7 +20,8 @@ jobs:
           script: |
             cd /home/ubuntu/SnapSplit
             git pull origin main
-            source venv/bin/activate
-            pip install -r backend/requirements.txt --quiet
+            /home/ubuntu/SnapSplit/venv/bin/pip install -r backend/requirements.txt --quiet
+            sudo systemctl daemon-reload
             sudo systemctl restart snapsplit
-            echo "Deploy complete"
+            echo "Deployment to EC2 complete"
+            sudo systemctl status snapsplit --no-pager
