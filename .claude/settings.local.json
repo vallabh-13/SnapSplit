@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m uvicorn app.main:app --port 8000 --reload)",
+      "Bash(pip install:*)",
+      "Bash(find D:/HTML/SnapSplit -iname *.png -o -iname *.jpg -o -iname *.jpeg -o -iname *.svg -o -iname *.webp)",
+      "Bash(python:*)"
+    ]
+  }
+}

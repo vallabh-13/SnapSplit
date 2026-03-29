@@ -129,15 +129,12 @@ function IdleScreen({ name, setName, showJoin, setShowJoin, joinCode, setJoinCod
     <div className="relative flex flex-col flex-1 px-6 pt-20 pb-10 min-h-screen">
       {/* Hero */}
       <div className="flex-1 flex flex-col items-center justify-center text-center gap-5">
-        <div
-          className="w-24 h-24 rounded-[28px] flex items-center justify-center text-5xl"
-          style={{
-            background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
-            boxShadow: '0 0 60px rgba(124,58,237,0.5), 0 8px 32px rgba(0,0,0,0.4)',
-          }}
-        >
-          🧾
-        </div>
+        <img
+          src="/logo.png"
+          alt="SnapSplit"
+          className="w-24 h-24 rounded-[28px] object-cover"
+          style={{ boxShadow: '0 0 60px rgba(124,58,237,0.5), 0 8px 32px rgba(0,0,0,0.4)' }}
+        />
 
         <div className="space-y-2">
           <h1 className="text-5xl font-extrabold tracking-tight text-gradient">SnapSplit</h1>
