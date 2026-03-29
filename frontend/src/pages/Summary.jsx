@@ -11,14 +11,30 @@ const AVATAR_BG = [
 function openPayment(deepLink, iosStore, androidStore) {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
   const fallback = isIOS ? iosStore : (androidStore || iosStore)
+  
+  // If it's already a web link, just go there — it will handle its own app-handoff
+  if (deepLink.startsWith('http')) {
+    window.location.href = deepLink
+    return
+  }
+
   let gone = false
   const onBlur = () => { gone = true }
   window.addEventListener('blur', onBlur, { once: true })
+  
   setTimeout(() => {
     window.removeEventListener('blur', onBlur)
-    if (!gone) window.location.href = fallback
-  }, 1500)
-  window.location.href = deepLink
+    if (!gone) {
+      window.location.href = fallback
+    }
+  }, 2000)
+
+  // Try to open the app via custom protocol
+  try {
+    window.location.href = deepLink
+  } catch (e) {
+    window.location.href = fallback
+  }
 }
 
 const PAYMENT_APPS = [
@@ -49,7 +65,7 @@ const PAYMENT_APPS = [
         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
       </svg>
     ),
-    deepLink: 'googlepay://',
+    deepLink: (amount, note) => `https://pay.google.com/gp/p/send?amount=${amount}&currencyCode=USD&description=${encodeURIComponent(note)}`,
     iosStore: 'https://apps.apple.com/app/google-pay/id566316253',
     androidStore: 'https://play.google.com/store/apps/details?id=com.google.android.apps.walletnfcrel',
   },
@@ -105,7 +121,7 @@ const PAYMENT_APPS = [
         <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.25 16.5H9.621l5.566-9H8.75v-2h8.5v2l-5.567 9H17.25v2z"/>
       </svg>
     ),
-    deepLink: 'zelle://',
+    deepLink: 'https://zellepay.com/go',
     iosStore: 'https://apps.apple.com/app/zelle/id1260755201',
     androidStore: 'https://play.google.com/store/apps/details?id=com.zellepay.zelle',
   },
@@ -114,7 +130,7 @@ const PAYMENT_APPS = [
 export default function Summary() {
   const { code } = useParams()
   const navigate = useNavigate()
-  const { fetchSummary, summary, myName, room } = useRoomStore()
+  const { fetchSummary, summary, myName, room, clearSession } = useRoomStore()
   const [loading, setLoading] = useState(true)
   const [showOthers, setShowOthers] = useState(false)
 
@@ -367,7 +383,10 @@ export default function Summary() {
 
         {/* ── Scan more ── */}
         <button
-          onClick={() => navigate('/')}
+          onClick={() => {
+            clearSession()
+            navigate('/')
+          }}
           className="w-full mt-4 py-4 rounded-3xl glass text-white/40 hover:text-white/70 font-semibold text-sm transition-colors flex items-center justify-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
